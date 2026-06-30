@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VoxMask Studio — Procesador vocal LUFS</title>
+  <style>
+:root{
+  --bg:#090b12; --panel:#111522; --panel2:#151b2c; --text:#edf3ff; --muted:#8c99b3;
+  --line:rgba(255,255,255,.09); --accent:#7c5cff; --accent2:#19d3c5; --warn:#ffb86b;
+  --shadow:0 24px 70px rgba(0,0,0,.38); --radius:24px;
+}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);background:
+ radial-gradient(circle at 20% 0%,rgba(124,92,255,.22),transparent 32%),
+ radial-gradient(circle at 90% 18%,rgba(25,211,197,.14),transparent 28%),var(--bg);min-height:100vh}
+svg{width:22px;height:22px;fill:currentColor} .app-shell{display:grid;grid-template-columns:310px 1fr;min-height:100vh}
+.sidebar{position:sticky;top:0;height:100vh;padding:28px 22px;border-right:1px solid var(--line);background:rgba(8,10,18,.72);backdrop-filter:blur(18px);display:flex;flex-direction:column;gap:28px}
+.brand{display:flex;gap:14px;align-items:center}.brand-mark{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;box-shadow:0 12px 35px rgba(124,92,255,.35)}.brand-mark svg{width:30px;height:30px;color:white}.brand h1{font-size:18px;margin:0}.brand p,.panel p{margin:4px 0 0;color:var(--muted);font-size:13px;line-height:1.45}.steps{display:flex;flex-direction:column;gap:8px}.step{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--muted);padding:13px 14px;border-radius:16px;transition:.2s}.step span{font-size:11px;color:#c4cbee;background:rgba(255,255,255,.07);padding:5px 7px;border-radius:9px}.step:hover,.step.active{color:var(--text);background:rgba(255,255,255,.08)}.status-card{margin-top:auto;padding:18px;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035));border:1px solid var(--line)}.status-card strong{display:block;margin:3px 0 6px}.status-card span{font-size:12px;color:var(--muted);line-height:1.5}.eyebrow{text-transform:uppercase;letter-spacing:.12em;color:var(--accent2)!important;font-size:11px!important;font-weight:800!important;margin:0!important}
+.workspace{padding:34px;max-width:1240px;width:100%;margin:0 auto}.hero{display:flex;justify-content:space-between;gap:22px;align-items:flex-start;margin-bottom:24px}.hero h2{font-size:clamp(28px,4vw,50px);line-height:1.02;letter-spacing:-.045em;margin:10px 0 0;max-width:850px}.primary-action,.secondary-action,.ghost-action{border:0;border-radius:16px;padding:14px 18px;font-weight:800;color:white;display:inline-flex;gap:10px;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;white-space:nowrap}.primary-action{background:linear-gradient(135deg,var(--accent),#4d7cff);box-shadow:0 16px 38px rgba(94,104,255,.32)}.primary-action:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}.secondary-action{background:rgba(255,255,255,.08);border:1px solid var(--line)}.secondary-action.disabled{opacity:.45;pointer-events:none}.ghost-action{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.grid{display:grid;gap:18px;margin-bottom:18px}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{background:linear-gradient(180deg,rgba(21,27,44,.92),rgba(13,17,29,.92));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin-bottom:18px}.panel-title,.section-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.panel-title{justify-content:flex-start}.panel-title>svg,.section-head>svg{color:var(--accent2)}.panel h3{font-size:20px;margin:0}.compact{margin-bottom:8px}.pill{font-size:12px;color:#dce2ff;background:rgba(124,92,255,.18);border:1px solid rgba(124,92,255,.3);padding:8px 10px;border-radius:999px}
+.dropzone{margin-top:18px;min-height:186px;border:1.5px dashed rgba(255,255,255,.22);border-radius:22px;display:grid;place-items:center;text-align:center;padding:24px;cursor:pointer;background:rgba(255,255,255,.035);transition:.2s}.dropzone input{display:none}.dropzone:hover,.dropzone.drag{border-color:var(--accent2);background:rgba(25,211,197,.07)}.drop-icon{width:54px;height:54px;border-radius:18px;display:grid;place-items:center;background:rgba(124,92,255,.18);color:#b8aaff}.dropzone.secondary .drop-icon{background:rgba(25,211,197,.14);color:var(--accent2)}.dropzone strong{display:block;margin-top:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis}.dropzone small{color:var(--muted);margin-top:5px}
+.profile-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}.profile-card{position:relative;padding:20px;border-radius:22px;border:1px solid var(--line);background:rgba(255,255,255,.035);cursor:pointer;transition:.2s}.profile-card input{position:absolute;opacity:0}.profile-card.selected{border-color:rgba(124,92,255,.78);background:linear-gradient(135deg,rgba(124,92,255,.18),rgba(255,255,255,.04))}.card-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:15px;background:rgba(255,255,255,.08);color:var(--accent2);margin-bottom:14px}.profile-card strong{display:block;margin-bottom:5px}.module-list{display:grid;gap:15px;margin-top:18px}.module-list>div{position:relative;padding-left:28px}.module-dot{position:absolute;left:0;top:4px;width:13px;height:13px;border-radius:50%;background:var(--accent2);box-shadow:0 0 0 6px rgba(25,211,197,.1)}.module-list strong{display:block}.controls-panel{display:grid;align-content:start;gap:14px}.control-row,.mix-controls label{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;padding:14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--line)}select,input[type=number]{background:#0c1020;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px 12px}input[type=range]{accent-color:var(--accent2);min-width:150px}.mix-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}.mix-controls label{grid-template-columns:1fr;gap:8px}.mix-controls b,.control-row b{color:var(--accent2)}.toggle{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}.toggle input{display:none}.toggle span{width:44px;height:25px;border-radius:999px;background:rgba(255,255,255,.14);position:relative}.toggle span:before{content:"";position:absolute;width:19px;height:19px;border-radius:50%;left:3px;top:3px;background:white;transition:.2s}.toggle input:checked+span{background:var(--accent)}.toggle input:checked+span:before{transform:translateX(19px)}
+.meter-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);color:var(--muted)}.meter-row strong{color:var(--text);font-size:18px}.export-panel audio{width:100%;margin:18px 0 14px}.actions{display:flex;gap:12px;flex-wrap:wrap}.toast{position:fixed;right:28px;bottom:24px;max-width:420px;padding:14px 16px;border-radius:16px;background:#111827;border:1px solid var(--line);box-shadow:var(--shadow);color:#eaf0ff;opacity:0;transform:translateY(12px);pointer-events:none;transition:.22s}.toast.show{opacity:1;transform:translateY(0)}
+@media (max-width:980px){.app-shell{grid-template-columns:1fr}.sidebar{position:relative;height:auto}.steps{display:grid;grid-template-columns:repeat(5,1fr)}.step{justify-content:center;font-size:0}.step span{font-size:11px}.hero,.section-head{flex-direction:column}.two,.profile-cards,.mix-controls{grid-template-columns:1fr}.workspace{padding:20px}.primary-action{width:100%}}
+@media (max-width:620px){.steps{grid-template-columns:repeat(3,1fr)}.panel{padding:17px;border-radius:19px}.control-row{grid-template-columns:1fr}.hero h2{font-size:30px}.sidebar{padding:20px 16px}.workspace{padding:16px}}
+
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40"><path d="M20 3.5c9.1 0 16.5 7.4 16.5 16.5S29.1 36.5 20 36.5 3.5 29.1 3.5 20 10.9 3.5 20 3.5Zm0 5.7A10.8 10.8 0 0 0 9.2 20c0 6 4.8 10.8 10.8 10.8S30.8 26 30.8 20 26 9.2 20 9.2Zm0 4.8a6 6 0 0 1 6 6 6 6 0 0 1-12 0 6 6 0 0 1 6-6Z"/></svg>
+        </div>
+        <div>
+          <h1>VoxMask Studio</h1>
+          <p>Voz · EQ · LUFS · Enmascaramiento</p>
+        </div>
+      </div>
+      <nav class="steps" aria-label="Flujo de procesamiento">
+        <a href="#input" class="step active"><span>01</span>Entrada</a>
+        <a href="#profile" class="step"><span>02</span>Perfil EQ</a>
+        <a href="#level" class="step"><span>03</span>Nivelación</a>
+        <a href="#mix" class="step"><span>04</span>Mezcla</a>
+        <a href="#export" class="step"><span>05</span>Exportar</a>
+      </nav>
+      <div class="status-card">
+        <p class="eyebrow">Motor local</p>
+        <strong>Web Audio Offline</strong>
+        <span>Todo se procesa en tu navegador. No se suben audios.</span>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Procesamiento profesional de voz</p>
+          <h2>Importa, limpia, ecualiza, normaliza y exporta tu audio listo para mezcla binaural.</h2>
+        </div>
+        <button id="processBtn" class="primary-action" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7-11-7Z"/></svg>
+          Procesar audio
+        </button>
+      </header>
+
+      <section id="input" class="grid two">
+        <article class="panel upload-panel">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 7 8h3v6h4V8h3l-5-5ZM5 18h14v2H5v-2Z"/></svg>
+            <div><h3>Voz principal</h3><p>Archivo local WAV, MP3, M4A u OGG.</p></div>
+          </div>
+          <label class="dropzone" for="voiceFile" id="voiceDrop">
+            <input id="voiceFile" type="file" accept="audio/*" multiple />
+            <span class="drop-icon"><svg viewBox="0 0 24 24"><path d="M19 13v5a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-5h2v5h10v-5h2ZM13 4v9h3l-4 4-4-4h3V4h2Z"/></svg></span>
+            <strong id="voiceName">Seleccionar voz</strong>
+            <small>Puedes seleccionar varios archivos a la vez.</small>
+          </label>
+        </article>
+
+        <article class="panel upload-panel">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18V6h2v12H4Zm4-3V9h2v6H8Zm4 5V4h2v16h-2Zm4-4V8h2v8h-2Zm4 2V6h2v12h-2Z"/></svg>
+            <div><h3>Fondo binaural o ruido blanco</h3><p>Opcional. Si se importa, se mezcla automáticamente.</p></div>
+          </div>
+          <label class="dropzone secondary" for="bedFile" id="bedDrop">
+            <input id="bedFile" type="file" accept="audio/*" />
+            <span class="drop-icon"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-9 9v7h6v-8H5.1a7 7 0 0 1 13.8 0H15v8h6v-7a9 9 0 0 0-9-9Z"/></svg></span>
+            <strong id="bedName">Añadir fondo</strong>
+            <small>La voz quedará entre -6 y -12 dB bajo este fondo.</small>
+          </label>
+        </article>
+      </section>
+
+      <section id="profile" class="panel">
+        <div class="section-head">
+          <div><p class="eyebrow">Núcleo del sistema</p><h3>Perfil de ecualización dinámica</h3></div>
+          <span class="pill">EQ matemática por objetivo</span>
+        </div>
+        <div class="profile-cards">
+          <label class="profile-card selected">
+            <input type="radio" name="profile" value="A" checked />
+            <span class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 14a4 4 0 0 0 4-4V7a4 4 0 0 0-8 0v3a4 4 0 0 0 4 4Zm7-4h-2a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-4.08A7 7 0 0 0 19 10Z"/></svg></span>
+            <strong>Perfil A · Tu propia voz</strong>
+            <p>Realce 120–250 Hz para cuerpo y autoridad. Atenuación 2–4 kHz para reducir estridencia.</p>
+          </label>
+          <label class="profile-card">
+            <input type="radio" name="profile" value="B" />
+            <span class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 4.7 7 13 7 13s7-8.3 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z"/></svg></span>
+            <strong>Perfil B · Voz femenina</strong>
+            <p>Atenúa 1–2 kHz y añade aire con high-shelf por encima de 10 kHz para suavidad y cercanía.</p>
+          </label>
+        </div>
+      </section>
+
+      <section id="level" class="grid two">
+        <article class="panel">
+          <div class="section-head compact"><div><p class="eyebrow">Pre-procesamiento fijo</p><h3>Limpieza de voz</h3></div></div>
+          <div class="module-list">
+            <div><span class="module-dot"></span><strong>RNNoise AI Denoiser</strong><p>Supresión de ruido con red neuronal recurrente. Preserva la voz, elimina ruido de fondo.</p></div>
+            <div><span class="module-dot"></span><strong>High-Pass 80 Hz</strong><p>Corte estricto de graves subsonoros y golpes de aire.</p></div>
+            <div><span class="module-dot"></span><strong>De-Esser 5–8 kHz</strong><p>Reduce sibilancias con detector de banda aguda.</p></div>
+          </div>
+        </article>
+        <article class="panel controls-panel">
+          <div class="section-head compact"><div><p class="eyebrow">Consistencia</p><h3>Compresión y LUFS</h3></div></div>
+          <label class="toggle" style="margin-bottom:10px"><input id="denoiseEnabled" type="checkbox" checked /><span></span>Denoiser AI (RNNoise)</label>
+          <label class="control-row"><span>Ratio de compresión</span><select id="ratio"><option value="3">3:1</option><option value="4" selected>4:1</option></select></label>
+          <label class="control-row"><span>LUFS objetivo</span><input id="targetLufs" type="number" value="-23" step="0.5" min="-35" max="-10" /></label>
+        </article>
+      </section>
+
+      <section id="mix" class="panel">
+        <div class="section-head">
+          <div><p class="eyebrow">Exportación</p><h3>Mezcla y enmascaramiento automático</h3></div>
+          <label class="toggle"><input id="loopVoice" type="checkbox" checked /><span></span>Loop de frases sobre todo el fondo</label>
+        </div>
+        <div class="mix-controls">
+          <label><span>Voz bajo fondo</span><input id="duckDb" type="range" min="-12" max="-6" value="-9" step="0.5" /><b id="duckValue">-9 dB</b></label>
+          <label><span>Silencio semántico</span><input id="silenceSec" type="range" min="3" max="5" value="4" step="0.25" /><b id="silenceValue">4.00 s</b></label>
+          <label><span>Separación mínima de frase</span><input id="phraseGap" type="range" min="0.18" max="0.8" value="0.35" step="0.01" /><b id="gapValue">0.35 s</b></label>
+        </div>
+      </section>
+
+      <section id="export" class="grid two bottom-grid">
+        <article class="panel meters">
+          <div class="section-head compact"><div><p class="eyebrow">Medición</p><h3>Resultado</h3></div></div>
+          <div class="meter-row"><span>LUFS entrada</span><strong id="inLufs">—</strong></div>
+          <div class="meter-row"><span>LUFS voz procesada</span><strong id="outLufs">—</strong></div>
+          <div class="meter-row"><span>Pico máximo</span><strong id="peakDb">—</strong></div>
+          <div class="meter-row"><span>Frases detectadas</span><strong id="phraseCount">—</strong></div>
+        </article>
+        <article class="panel export-panel">
+          <div class="section-head compact"><div><p class="eyebrow">Archivo final</p><h3>Previsualizar y descargar</h3></div></div>
+          <audio id="player" controls></audio>
+          <label class="control-row" style="margin-bottom:14px"><span>Formato</span><select id="exportFormat"><option value="wav">WAV (sin compresión)</option><option value="mp3">MP3 (ligero)</option><option value="webm">WebM / Opus (compacto)</option><option value="ogg">OGG / Opus (open source)</option></select></label>
+          <div class="actions">
+            <a id="downloadLink" class="secondary-action disabled" download="voxmask_processed.wav">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14v-2H5v2ZM19 9h-4V3H9v6H5l7 7 7-7Z"/></svg>
+              Descargar WAV
+            </a>
+            <button id="resetBtn" class="ghost-action">Reiniciar</button>
+          </div>
+        </article>
+      </section>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    </main>
+  </div>
+  <script>
+const $ = (s) => document.querySelector(s);
+const state = { voiceFiles:[], bedFile:null, outputUrl:null, outputBlob:null, processedBuffer:null, processedOutputs:[] };
+
+const ui = {
+  voiceFile: $('#voiceFile'), bedFile: $('#bedFile'), voiceName: $('#voiceName'), bedName: $('#bedName'),
+  processBtn: $('#processBtn'), player: $('#player'), downloadLink: $('#downloadLink'), toast: $('#toast'),
+  ratio: $('#ratio'), targetLufs: $('#targetLufs'),
+  duckDb: $('#duckDb'), duckValue: $('#duckValue'), silenceSec: $('#silenceSec'), silenceValue: $('#silenceValue'),
+  phraseGap: $('#phraseGap'), gapValue: $('#gapValue'), loopVoice: $('#loopVoice'), resetBtn: $('#resetBtn'),
+  inLufs: $('#inLufs'), outLufs: $('#outLufs'), peakDb: $('#peakDb'), phraseCount: $('#phraseCount'),
+  exportFormat: $('#exportFormat'), denoiseEnabled: $('#denoiseEnabled')
+};
+
+function toast(msg){ ui.toast.textContent = msg; ui.toast.classList.add('show'); setTimeout(()=>ui.toast.classList.remove('show'), 4200); }
+function dbToGain(db){ return Math.pow(10, db/20); }
+function gainToDb(g){ return 20*Math.log10(Math.max(g, 1e-12)); }
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+function enable(){ ui.processBtn.disabled = !state.voiceFiles.length; }
+
+function bindVoiceFiles(input){
+  input.addEventListener('change', () => {
+    const files = Array.from(input.files); if(!files.length) return;
+    state.voiceFiles = files;
+    ui.voiceName.textContent = files.length === 1 ? files[0].name : `${files.length} archivos seleccionados`;
+    enable(); toast(`${files.length} archivo${files.length>1?'s':''} importado${files.length>1?'s':''}`);
+  });
+}
+function bindBedFile(input){
+  input.addEventListener('change', () => {
+    const file = input.files?.[0]; if(!file) return;
+    state.bedFile = file; ui.bedName.textContent = file.name; enable(); toast(`${file.name} importado correctamente`);
+  });
+}
+bindVoiceFiles(ui.voiceFile); bindBedFile(ui.bedFile);
+
+for(const zone of [$('#voiceDrop'), $('#bedDrop')]){
+  ['dragenter','dragover'].forEach(ev=>zone.addEventListener(ev,e=>{e.preventDefault();zone.classList.add('drag')}));
+  ['dragleave','drop'].forEach(ev=>zone.addEventListener(ev,e=>{e.preventDefault();zone.classList.remove('drag')}));
+  zone.addEventListener('drop', e => {
+    const files = Array.from(e.dataTransfer.files?.filter(f=>f.type.startsWith('audio/'))||[]); if(!files.length) return;
+    if(zone.id === 'voiceDrop'){
+      state.voiceFiles = files;
+      ui.voiceName.textContent = files.length === 1 ? files[0].name : `${files.length} archivos seleccionados`;
+      enable(); toast(`${files.length} archivo${files.length>1?'s':''} importado${files.length>1?'s':''}`);
+    } else {
+      const file = files[0];
+      const dt = new DataTransfer(); dt.items.add(file); ui.bedFile.files = dt.files; ui.bedFile.dispatchEvent(new Event('change'));
+    }
+  });
+}
+
+document.querySelectorAll('.profile-card').forEach(card=>card.addEventListener('click',()=>{
+  document.querySelectorAll('.profile-card').forEach(c=>c.classList.remove('selected')); card.classList.add('selected');
+}));
+ui.duckDb.oninput=()=>ui.duckValue.textContent=`${Number(ui.duckDb.value).toFixed(1).replace('.0','')} dB`;
+ui.silenceSec.oninput=()=>ui.silenceValue.textContent=`${Number(ui.silenceSec.value).toFixed(2)} s`;
+ui.phraseGap.oninput=()=>ui.gapValue.textContent=`${Number(ui.phraseGap.value).toFixed(2)} s`;
+ui.resetBtn.onclick=()=>location.reload();
+
+ui.exportFormat.onchange=()=>{
+  const labels={wav:'WAV',mp3:'MP3',webm:'WebM',ogg:'OGG'};
+  const ext=labels[ui.exportFormat.value]||'WAV';
+  ui.downloadLink.querySelector('svg').nextSibling.textContent=`Descargar ${ext}`;
+  if(state.processedOutputs.length){ const fn=makeFileName(state.voiceFiles[0]?.name); ui.downloadLink.setAttribute('download',fn); }
+};
+
+const MIME={webm:'audio/webm;codecs=opus',ogg:'audio/ogg;codecs=opus'};
+async function encodeToMediaRecorder(buffer,mimeType){
+  return new Promise((resolve,reject)=>{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)({sampleRate:buffer.sampleRate});
+    const dest=ctx.createMediaStreamDestination();
+    const src=ctx.createBufferSource(); src.buffer=buffer;
+    const merger=ctx.createChannelMerger(buffer.numberOfChannels);
+    src.connect(merger);
+    for(let c=0;c<buffer.numberOfChannels;c++) merger.connect(dest,c,c);
+    src.connect(ctx.destination);
+    const recorder=new MediaRecorder(dest.stream,{mimeType});
+    const chunks=[];
+    recorder.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
+    recorder.onerror=e=>{ctx.close();reject(e.error);};
+    recorder.onstop=()=>{resolve(new Blob(chunks,{type:mimeType}));ctx.close();};
+    recorder.start(); src.start(0);
+    src.onended=()=>setTimeout(()=>recorder.stop(),200);
+  });
+}
+
+let _lameReady=false;
+function loadLamejs(){
+  return new Promise((resolve,reject)=>{
+    if(_lameReady||window.lamejs){_lameReady=true;resolve();return;}
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js';
+    s.onload=()=>{_lameReady=true;resolve();};
+    s.onerror=()=>reject(new Error('No se pudo cargar lamejs desde CDN.'));
+    document.head.appendChild(s);
+  });
+}
+async function encodeToMp3(buffer){
+  await loadLamejs();
+  const sr=buffer.sampleRate, ch=buffer.numberOfChannels, kbps=192;
+  const lame=new lamejs.Mp3Encoder(ch,sr,kbps);
+  const blockSize=1152;
+  const left=buffer.getChannelData(0);
+  const right=ch>1?buffer.getChannelData(1):left;
+  const leftI16=new Int16Array(left.length);
+  const rightI16=new Int16Array(right.length);
+  for(let i=0;i<left.length;i++){
+    const s=Math.max(-1,Math.min(1,left[i]));
+    leftI16[i]=s<0?s*0x8000:s*0x7fff;
+  }
+  if(ch>1) for(let i=0;i<right.length;i++){
+    const s=Math.max(-1,Math.min(1,right[i]));
+    rightI16[i]=s<0?s*0x8000:s*0x7fff;
+  }
+  const mp3Data=[];
+  for(let i=0;i<left.length;i+=blockSize){
+    const leftBlock=leftI16.subarray(i,Math.min(i+blockSize,left.length));
+    const rightBlock=rightI16.subarray(i,Math.min(i+blockSize,right.length));
+    const buf=ch>1?lame.encodeBuffer(leftBlock,rightBlock):lame.encodeBuffer(leftBlock);
+    if(buf.length>0)mp3Data.push(new Int8Array(buf));
+  }
+  const tail=lame.flush();
+  if(tail.length>0)mp3Data.push(new Int8Array(tail));
+  const totalLen=mp3Data.reduce((a,b)=>a+b.length,0);
+  const out=new Uint8Array(totalLen);
+  let offset=0;
+  for(const chunk of mp3Data){out.set(chunk,offset);offset+=chunk.length;}
+  return new Blob([out],{type:'audio/mpeg'});
+}
+
+let _rnnoise=null;
+async function loadRNNoise(){
+  if(_rnnoise) return _rnnoise;
+  const resp=await fetch('https://cdn.jsdelivr.net/npm/simple-rnnoise-wasm@1.1.0/dist/rnnoise.wasm');
+  const bytes=await resp.arrayBuffer();
+  const {instance}=await WebAssembly.instantiate(bytes);
+  _rnnoise=instance.exports;
+  return _rnnoise;
+}
+
+async function denoiseWithRNNoise(buffer){
+  const rn=await loadRNNoise();
+  const targetSr=48000, frameSize=480;
+  let workBuf=buffer;
+  if(buffer.sampleRate!==targetSr) workBuf=await resampleTo(buffer,targetSr);
+  const outBuf=new AudioBuffer({length:workBuf.length,numberOfChannels:workBuf.numberOfChannels,sampleRate:targetSr});
+  for(let c=0;c<workBuf.numberOfChannels;c++){
+    const input=workBuf.getChannelData(c), output=outBuf.getChannelData(c);
+    const state=rn.newState();
+    const inputPtr=rn.getInput(state)/4;
+    const inpView=new Float32Array(rn.memory.buffer,inputPtr,frameSize);
+    for(let i=0;i<input.length;i+=frameSize){
+      const len=Math.min(frameSize,input.length-i);
+      inpView.set(input.subarray(i,i+len));
+      const outPtr=rn.pipe(state,len)/4;
+      if(outPtr) output.set(new Float32Array(rn.memory.buffer,outPtr,len),i);
+    }
+    rn.deleteState(state);
+  }
+  if(buffer.sampleRate!==targetSr) return await resampleTo(outBuf,buffer.sampleRate);
+  return outBuf;
+}
+
+async function decodeAudio(file){
+  const array = await file.arrayBuffer();
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  await ctx.resume();
+  const buf = await ctx.decodeAudioData(array.slice(0));
+  await ctx.close(); return buf;
+}
+
+function monoFromBuffer(buffer){
+  const len = buffer.length, ch = buffer.numberOfChannels;
+  const out = new Float32Array(len);
+  for(let c=0;c<ch;c++){ const data = buffer.getChannelData(c); for(let i=0;i<len;i++) out[i]+=data[i]/ch; }
+  return out;
+}
+function rmsDb(samples){ let s=0; for(let i=0;i<samples.length;i++) s+=samples[i]*samples[i]; return 10*Math.log10(s/samples.length + 1e-12); }
+function approxLufs(samples){ return rmsDb(samples) - 0.691; }
+function peakDb(samples){ let p=0; for(let i=0;i<samples.length;i++) p=Math.max(p, Math.abs(samples[i])); return gainToDb(p); }
+
+function detectPhrases(samples, sr, gateDb, minGapSec){
+  const win = Math.max(128, Math.floor(sr*0.04));
+  const hop = Math.max(64, Math.floor(sr*0.01));
+  const frames=[]; let noise=0, n=0;
+  for(let i=0;i<Math.min(samples.length, sr*2);i+=hop){ const d = rmsDb(samples.subarray(i, Math.min(i+win,samples.length))); noise += d; n++; }
+  const adaptive = Math.max(gateDb, (noise/Math.max(n,1))+4);
+  for(let i=0;i<samples.length;i+=hop){ frames.push({t:i/sr, active:rmsDb(samples.subarray(i, Math.min(i+win,samples.length))) > adaptive}); }
+  const phrases=[]; let start=null, lastActive=0;
+  for(const f of frames){
+    if(f.active && start===null){ start=f.t; }
+    if(f.active) lastActive=f.t;
+    if(start!==null && !f.active && f.t-lastActive>minGapSec){ if(lastActive-start>0.08) phrases.push([Math.max(0,start-.10), Math.min(samples.length/sr,lastActive+.18)]); start=null; }
+  }
+  if(start!==null && lastActive-start>0.08) phrases.push([Math.max(0,start-.10), Math.min(samples.length/sr,lastActive+.18)]);
+  return phrases.length ? phrases : [[0, samples.length/sr]];
+}
+
+async function renderVoice(buffer, profile, ratio, targetLufs, gateDb){
+  const sr = buffer.sampleRate, len = buffer.length;
+  const ctx = new OfflineAudioContext(buffer.numberOfChannels, len, sr);
+  const src = ctx.createBufferSource(); src.buffer = buffer;
+
+  const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=80; hp.Q.value=.72;
+  const comp = ctx.createDynamicsCompressor(); comp.threshold.value=-28; comp.knee.value=5; comp.ratio.value=ratio; comp.attack.value=.006; comp.release.value=.22;
+
+  let chainEnd;
+  if(profile === 'A'){
+    const body = ctx.createBiquadFilter(); body.type='peaking'; body.frequency.value=180; body.Q.value=.9; body.gain.value=2.6;
+    const harsh = ctx.createBiquadFilter(); harsh.type='peaking'; harsh.frequency.value=3000; harsh.Q.value=1.05; harsh.gain.value=-2.2;
+    src.connect(hp); hp.connect(body); body.connect(harsh); harsh.connect(comp); chainEnd=comp;
+  } else {
+    const phone = ctx.createBiquadFilter(); phone.type='peaking'; phone.frequency.value=1500; phone.Q.value=1.1; phone.gain.value=-2.8;
+    const air = ctx.createBiquadFilter(); air.type='highshelf'; air.frequency.value=10000; air.gain.value=2.0;
+    src.connect(hp); hp.connect(phone); phone.connect(air); air.connect(comp); chainEnd=comp;
+  }
+
+  // De-esser: banda 5–8 kHz invertida de baja ganancia mezclada contra señal comprimida.
+  const deBand = ctx.createBiquadFilter(); deBand.type='bandpass'; deBand.frequency.value=6500; deBand.Q.value=2.2;
+  const deGain = ctx.createGain(); deGain.gain.value=-0.22;
+  chainEnd.connect(deBand); deBand.connect(deGain);
+  deGain.connect(ctx.destination); chainEnd.connect(ctx.destination);
+  src.start();
+  const rendered = await ctx.startRendering();
+
+  let out, phrases;
+  if(ui.denoiseEnabled.checked){
+    try {
+      toast('Denoising con RNNoise AI…');
+      out = await denoiseWithRNNoise(rendered);
+      phrases = [[0, out.length/out.sampleRate]];
+    } catch(err) {
+      console.warn('RNNoise unavailable, using fallback gate:', err);
+      toast('RNNoise no disponible, usando gate de respaldo…');
+      phrases = detectPhrases(monoFromBuffer(rendered), sr, gateDb, Number(ui.phraseGap.value));
+      out = new AudioBuffer({length: rendered.length, numberOfChannels: rendered.numberOfChannels, sampleRate: sr});
+      const fadeAttack = Math.floor(sr*0.025);
+      const fadeRelease = Math.floor(sr*0.05);
+      for(let c=0;c<rendered.numberOfChannels;c++){
+        const input = rendered.getChannelData(c), data = out.getChannelData(c);
+        for(const [a,b] of phrases){
+          const s = Math.floor(a*sr), e = Math.min(input.length, Math.ceil(b*sr));
+          for(let i=s;i<e;i++){
+            let g=1; if(i<s+fadeAttack) g=(i-s)/fadeAttack; if(i>e-fadeRelease) g=Math.min(g,(e-i)/fadeRelease); data[i]=input[i]*clamp(g,0,1);
+          }
+        }
+      }
+    }
+  } else {
+    phrases = [[0, rendered.length/sr]];
+    out = rendered;
+  }
+  normalizeBuffer(out, targetLufs);
+  return {buffer:out, phrases};
+}
+
+function normalizeBuffer(buffer, targetLufs){
+  const mono = monoFromBuffer(buffer); const current = approxLufs(mono); let gain = dbToGain(targetLufs-current);
+  let p=0; for(let i=0;i<mono.length;i++) p=Math.max(p, Math.abs(mono[i]*gain));
+  if(p > dbToGain(-1)) gain *= dbToGain(-1)/p;
+  for(let c=0;c<buffer.numberOfChannels;c++){ const d=buffer.getChannelData(c); for(let i=0;i<d.length;i++) d[i]*=gain; }
+}
+
+function copySegment(srcBuf, dst, dstOffset, startSec, endSec, gain=1){
+  const sr=srcBuf.sampleRate, s=Math.floor(startSec*sr), e=Math.min(srcBuf.length, Math.ceil(endSec*sr));
+  for(let c=0;c<dst.numberOfChannels;c++){
+    const src=srcBuf.getChannelData(Math.min(c,srcBuf.numberOfChannels-1)); const out=dst.getChannelData(c);
+    for(let i=s;i<e && dstOffset+i-s<out.length;i++) out[dstOffset+i-s]+=src[i]*gain;
+  }
+  return e-s;
+}
+
+function mixWithBed(voiceBuf, phrases, bedBuf, duckDb, silenceSec, loop){
+  if(!bedBuf) return voiceBuf;
+  const sr = voiceBuf.sampleRate;
+  const length = loop ? Math.max(bedBuf.length, voiceBuf.length) : Math.max(bedBuf.length, voiceBuf.length);
+  const out = new AudioBuffer({length, numberOfChannels:Math.max(2, bedBuf.numberOfChannels, voiceBuf.numberOfChannels), sampleRate:sr});
+  // fondo en loop si es más corto
+  for(let c=0;c<out.numberOfChannels;c++){
+    const o=out.getChannelData(c), b=bedBuf.getChannelData(Math.min(c,bedBuf.numberOfChannels-1));
+    for(let i=0;i<length;i++) o[i]+=b[i % b.length]*0.92;
+  }
+  const voiceGain = dbToGain(duckDb);
+  if(loop){
+    let pos=0, idx=0;
+    while(pos < length){
+      const ph=phrases[idx % phrases.length]; const written = copySegment(voiceBuf,out,pos,ph[0],ph[1],voiceGain);
+      pos += written + Math.floor(silenceSec*sr); idx++;
+    }
+  } else copySegment(voiceBuf,out,0,0,voiceBuf.length/sr,voiceGain);
+  preventClipping(out); return out;
+}
+
+function preventClipping(buffer){
+  let p=0; for(let c=0;c<buffer.numberOfChannels;c++){ const d=buffer.getChannelData(c); for(let i=0;i<d.length;i++) p=Math.max(p,Math.abs(d[i])); }
+  if(p>0.98){ const g=0.98/p; for(let c=0;c<buffer.numberOfChannels;c++){ const d=buffer.getChannelData(c); for(let i=0;i<d.length;i++) d[i]*=g; } }
+}
+
+async function resampleTo(buffer, sampleRate){
+  if(buffer.sampleRate === sampleRate) return buffer;
+  const ctx = new OfflineAudioContext(buffer.numberOfChannels, Math.ceil(buffer.duration*sampleRate), sampleRate);
+  const src = ctx.createBufferSource(); src.buffer=buffer; src.connect(ctx.destination); src.start(); return await ctx.startRendering();
+}
+
+function wavEncode(buffer){
+  const ch=buffer.numberOfChannels, sr=buffer.sampleRate, len=buffer.length, bytes=44+len*ch*2;
+  const ab=new ArrayBuffer(bytes), v=new DataView(ab); let p=0;
+  const str=s=>{for(let i=0;i<s.length;i++) v.setUint8(p++,s.charCodeAt(i));};
+  str('RIFF'); v.setUint32(p,bytes-8,true); p+=4; str('WAVEfmt '); v.setUint32(p,16,true); p+=4; v.setUint16(p,1,true); p+=2; v.setUint16(p,ch,true); p+=2; v.setUint32(p,sr,true); p+=4; v.setUint32(p,sr*ch*2,true); p+=4; v.setUint16(p,ch*2,true); p+=2; v.setUint16(p,16,true); p+=2; str('data'); v.setUint32(p,len*ch*2,true); p+=4;
+  for(let i=0;i<len;i++) for(let c=0;c<ch;c++){ const s=clamp(buffer.getChannelData(c)[i],-1,1); v.setInt16(p, s<0?s*0x8000:s*0x7fff, true); p+=2; }
+  return new Blob([ab],{type:'audio/wav'});
+}
+
+
+function makeFileName(originalName){
+  const ext={wav:'wav',mp3:'mp3',webm:'webm',ogg:'ogg'}[ui.exportFormat.value]||'wav';
+  const base = (originalName || state.voiceFiles[0]?.name || 'voz').replace(/\.[^/.]+$/, '').replace(/[^a-z0-9_-]+/gi,'_').slice(0,50);
+  return `${base}_voxmask_processed.${ext}`;
+}
+
+let _jszip=null;
+async function loadJSZip(){
+  if(_jszip) return _jszip;
+  const s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+  await new Promise((res,rej)=>{s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+  _jszip=JSZip; return _jszip;
+}
+
+async function exportAudio(e){
+  e.preventDefault();
+  if(!state.processedOutputs.length){ toast('Primero procesa el audio.'); return; }
+  const outputs = state.processedOutputs;
+
+  if(outputs.length===1){
+    const blob = outputs[0].blob;
+    const fileName = outputs[0].name;
+    if(window.showSaveFilePicker){
+      try{
+        const handle = await window.showSaveFilePicker({suggestedName:fileName,types:[{description:'Archivo de audio',accept:{'audio/*':['.wav','.mp3','.webm','.ogg']}}]});
+        const writable = await handle.createWritable(); await writable.write(blob); await writable.close();
+        toast('Archivo guardado correctamente.'); return;
+      }catch(err){ if(err?.name==='AbortError') return; }
+    }
+    const url = URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=fileName; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+    return;
+  }
+
+  toast('Generando ZIP…');
+  ui.downloadLink.classList.add('disabled');
+  try{
+    const JSZip = await loadJSZip();
+    const zip = new JSZip();
+    for(const out of outputs) zip.file(out.name, out.blob);
+    const zipBlob = await zip.generateAsync({type:'blob'});
+    const url = URL.createObjectURL(zipBlob);
+    const a=document.createElement('a'); a.href=url; a.download=`voxmask_batch_${outputs.length}_files.zip`; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+    toast(`${outputs.length} archivos descargados en ZIP.`);
+  }catch(err){ console.error(err); toast(`Error al generar ZIP: ${err.message}`); }
+  finally{ ui.downloadLink.classList.remove('disabled'); }
+}
+
+ui.downloadLink.addEventListener('click', exportAudio);
+
+ui.processBtn.addEventListener('click', async()=>{
+  try{
+    ui.processBtn.disabled=true;
+    const files = state.voiceFiles;
+    const total = files.length;
+    state.processedOutputs = [];
+    let bed = state.bedFile ? await decodeAudio(state.bedFile) : null;
+    const profile = document.querySelector('input[name="profile"]:checked').value;
+
+    for(let i=0;i<total;i++){
+      const file = files[i];
+      const label = total>1 ? `(${i+1}/${total}) ` : '';
+      toast(`${label}Decodificando ${file.name}…`);
+      ui.processBtn.textContent=`${label}Procesando ${i+1}/${total}…`;
+      const voice = await decodeAudio(file);
+      let workBed = bed;
+      if(workBed && workBed.sampleRate !== voice.sampleRate) workBed = await resampleTo(workBed, voice.sampleRate);
+      const inputLufs = approxLufs(monoFromBuffer(voice));
+      toast(`${label}Procesando EQ y compresión…`);
+      const {buffer:processed, phrases} = await renderVoice(voice, profile, Number(ui.ratio.value), Number(ui.targetLufs.value), -48);
+      toast(`${label}Mezclando capas…`);
+      const mixed = mixWithBed(processed, phrases, workBed, Number(ui.duckDb.value), Number(ui.silenceSec.value), ui.loopVoice.checked);
+      toast(`${label}Generando ${ui.exportFormat.value.toUpperCase()}…`);
+      const outName = makeFileName(file.name);
+      const ext = ui.exportFormat.value;
+      let blob;
+      if(ext==='wav'){
+        blob = wavEncode(mixed);
+      } else if(ext==='mp3'){
+        blob = await encodeToMp3(mixed);
+      } else {
+        const mimeTypes = {webm:MIME.webm,ogg:MIME.ogg};
+        blob = await encodeToMediaRecorder(mixed, mimeTypes[ext]);
+      }
+      state.processedOutputs.push({name:outName, blob, inputLufs, outLufs:approxLufs(monoFromBuffer(processed)), peak:peakDb(monoFromBuffer(mixed)), phrases:phrases.length});
+      if(total===1){
+        state.processedBuffer = mixed;
+        const url = URL.createObjectURL(blob);
+        state.outputUrl = url; state.outputBlob = blob;
+        ui.player.src = url;
+        ui.inLufs.textContent = `${inputLufs.toFixed(1)} LUFS aprox.`;
+        ui.outLufs.textContent = `${approxLufs(monoFromBuffer(processed)).toFixed(1)} LUFS aprox.`;
+        ui.peakDb.textContent = `${peakDb(monoFromBuffer(mixed)).toFixed(1)} dBFS`;
+        ui.phraseCount.textContent = phrases.length;
+      }
+    }
+    ui.downloadLink.classList.remove('disabled');
+    if(total===1){
+      ui.downloadLink.setAttribute('download', state.processedOutputs[0].name);
+      toast('Procesamiento terminado. Ya puedes previsualizar o descargar.');
+    } else {
+      ui.downloadLink.setAttribute('download', `voxmask_batch_${total}_files.zip`);
+      toast(`${total} archivos procesados. Listos para descargar.`);
+      ui.inLufs.textContent = `${state.processedOutputs[0].inputLufs.toFixed(1)} LUFS`;
+      ui.outLufs.textContent = `${state.processedOutputs[0].outLufs.toFixed(1)} LUFS`;
+      ui.peakDb.textContent = `${state.processedOutputs[0].peak.toFixed(1)} dBFS`;
+      ui.phraseCount.textContent = state.processedOutputs.reduce((a,b)=>a+b.phrases,0);
+    }
+  } catch(err){ console.error(err); toast(`Error: ${err.message || 'Formato no soportado.'}`); }
+  finally{ ui.processBtn.disabled=false; ui.processBtn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7-11-7Z"/></svg>Procesar audio'; }
+});
+
+  </script>
+</body>
+</html>
